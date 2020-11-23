@@ -1,28 +1,28 @@
 from flask import Flask
 from redis import Redis, RedisError
+import os
 import socket
 
-# connect to redis server and create a new redis instance
-redis = Redis(host="redis-server", db=0)
+## connect to my redis server
+redis = Redis(host="redis-server", db=0, socket_timeout=2, socket_connect_timeout=10)
 
-# create a nex flask app instance
+## create a new application instance
 app = Flask(__name__)
 
-# functions to trigger when a client goes to /<path>
-
-@app.route('/')
+## define my routes
+@app.route("/")
 def index():
-    return "<h1> Bienvenue sur mon site </h1>"
+	return "<h1> Good Bye World </h1>"
 
-@app.route('/visit')
-def counter_incr():
-    try:
-        visits = redis.incr("counter")
-    except:
-        visits = "<i> je n'ai pas réussi à me connecter sur redis </i>"
-    
-    html = "<h1> Number of visits : {} </h1>".format(visits)
-    return html
+@app.route("/visit")
+def visit_counting():
+	try:
+		visits = redis.incr("counter")
+	except RedisError:
+		visits = "<i> I cannot connect to Redis, i don't know why </i>"
+	html = "<h1> Number of visits: {}</h1>, \n Hostname {}".format(visits, socket.gethostname())
+	return html
+
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=80)
+	app.run(debug=True, port=80, host='0.0.0.0')
